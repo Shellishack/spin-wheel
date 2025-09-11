@@ -1,8 +1,6 @@
-## Pulse App Template
+## Spin Wheel in Pulse Editor
 
-This is a React full-stack template which you can use to make your own Pulse Editor app. It uses Webpack Module Federation to share modules with Pulse Editor.
-
-For more information about Pulse Editor core and its ecosystem, visit our official [website](https://pulse-editor.com) and [documentation](https://docs.pulse-editor.com).
+A fun spinning wheel in Pulse Editor.
 
 ## Get Started
 
