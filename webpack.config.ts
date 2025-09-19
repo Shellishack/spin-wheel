@@ -26,11 +26,13 @@ function getLocalNetworkIP() {
 
 const origin = getLocalNetworkIP();
 
+const isHttps = fs.existsSync("certs/cert.pem") && fs.existsSync("certs/key.pem");
+
 const previewStartupMessage = `
 🎉 Your Pulse extension preview \x1b[1m${pulseConfig.displayName}\x1b[0m is LIVE! 
 
-⚡️ Local: http://localhost:3030
-⚡️ Network: http://${origin}:3030
+⚡️ Local: ${isHttps ? "https" : "http"}://localhost:3030
+⚡️ Network: ${isHttps ? "https" : "http"}://${origin}:3030
 
 ✨ Try it out in your browser and let the magic happen! 🚀
 `;
@@ -38,8 +40,8 @@ const previewStartupMessage = `
 const devStartupMessage = `
 🎉 Your Pulse extension \x1b[1m${pulseConfig.displayName}\x1b[0m is LIVE! 
 
-⚡️ Local: http://localhost:3030/${pulseConfig.id}/${pulseConfig.version}/
-⚡️ Network: http://${origin}:3030/${pulseConfig.id}/${pulseConfig.version}/
+⚡️ Local: ${isHttps ? "https" : "http"}://localhost:3030/${pulseConfig.id}/${pulseConfig.version}/
+⚡️ Network: ${isHttps ? "https" : "http"}://${origin}:3030/${pulseConfig.id}/${pulseConfig.version}/
 
 ✨ Try it out in the Pulse Editor and let the magic happen! 🚀
 `;
@@ -339,7 +341,8 @@ ${Object.entries(funcs)
   );
 }
 
-function compileServerFunctions(compiler) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function compileServerFunctions(compiler: any) {
   // Remove existing entry points
   try {
     fs.rmSync("dist/server", { recursive: true, force: true });

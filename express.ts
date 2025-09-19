@@ -9,6 +9,9 @@ import dotenv from "dotenv";
 import livereload from "livereload";
 import connectLivereload from "connect-livereload";
 import { networkInterfaces } from "os";
+import fs from "fs";
+import https from "https";
+import http from "http";
 
 dotenv.config({
   quiet: true,
@@ -26,6 +29,18 @@ if (isDev || isPreview) {
 }
 
 const app = express();
+// Load self-signed SSL certificates if available
+const sslOptions =
+  fs.existsSync("certs/cert.pem") && fs.existsSync("certs/key.pem")
+    ? {
+        key: fs.readFileSync("certs/key.pem"),
+        cert: fs.readFileSync("certs/cert.pem"),
+      }
+    : undefined;
+const server = sslOptions
+  ? https.createServer(sslOptions, app)
+  : http.createServer(app);
+
 app.use(cors());
 // Inject the client-side livereload script into HTML responses
 app.use(connectLivereload());
@@ -70,24 +85,26 @@ if (isPreview) {
     }
   });
 
-  app.listen(3030);
+  server.listen(3030);
 } else if (isDev) {
   /* Dev mode  */
   app.use(`/${pulseConfig.id}/${pulseConfig.version}`, express.static("dist"));
 
-  app.listen(3030);
+  server.listen(3030);
 } else {
   /* Production mode */
   app.use(`/${pulseConfig.id}/${pulseConfig.version}`, express.static("dist"));
 
-  app.listen(3030, () => {
+  server.listen(3030, () => {
     console.log(`\
 🎉 Your Pulse extension \x1b[1m${pulseConfig.displayName}\x1b[0m is LIVE! 
 
-⚡️ Local: http://localhost:3030/${pulseConfig.id}/${pulseConfig.version}/
-⚡️ Network: http://${getLocalNetworkIP()}:3030/${pulseConfig.id}/${
-      pulseConfig.version
-    }/
+⚡️ Local: ${sslOptions ? "https" : "http"}://localhost:3030/${
+      pulseConfig.id
+    }/${pulseConfig.version}/
+⚡️ Network: ${sslOptions ? "https" : "http"}://${getLocalNetworkIP()}:3030/${
+      pulseConfig.id
+    }/${pulseConfig.version}/
 
 ✨ Try it out in the Pulse Editor and let the magic happen! 🚀`);
   });

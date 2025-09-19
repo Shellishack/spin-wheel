@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import { useCommand } from "@pulse-editor/react-api";
+import React, { useCallback, useMemo, useState } from "react";
 
 const COLORS = [
   "#fde047", // yellow-300
@@ -47,7 +48,7 @@ const SpinWheel: React.FC = () => {
     return `conic-gradient(from -90deg, ${stops})`;
   }, [options.length, sliceAngle]);
 
-  const spin = () => {
+  function spin() {
     if (spinning || options.length === 0) return;
 
     setSpinning(true);
@@ -65,7 +66,7 @@ const SpinWheel: React.FC = () => {
       setSelectedPrize(options[index]);
       setSpinning(false);
     }, 5000);
-  };
+  }
 
   const handleUpdateOptions = () => {
     const items = optionsInput
@@ -77,6 +78,37 @@ const SpinWheel: React.FC = () => {
       setSelectedPrize(null);
     }
   };
+
+  const [count, setCount] = useState(0);
+
+  const spinCallback = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+    async (args: any) => {
+      if (!spinning) {
+        console.log("Spinning the wheel!", count);
+        setCount(count + 1);
+        // Wait before spinning to allow UI to update
+        // await new Promise((resolve) => setTimeout(resolve, 100));
+        spin();
+      }
+    },
+    [count, spinning]
+  );
+
+  useCommand(
+    {
+      name: "spin",
+      description: "Spin the wheel",
+      parameters: {},
+    },
+    spinCallback
+  );
+
+  // useEffect(() => {
+  //   if (isReady) {
+  //     updateHandler(spinCallback);
+  //   }
+  // }, [isReady, spinCallback]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-200 to-pink-200 p-6 gap-6">
