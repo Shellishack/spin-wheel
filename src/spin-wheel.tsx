@@ -88,7 +88,7 @@ const SpinWheel: React.FC = () => {
         console.log("Spinning the wheel!", count);
         setCount(count + 1);
         // Wait before spinning to allow UI to update
-        // await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         spin();
       }
     },
@@ -103,12 +103,6 @@ const SpinWheel: React.FC = () => {
     },
     spinCallback
   );
-
-  // useEffect(() => {
-  //   if (isReady) {
-  //     updateHandler(spinCallback);
-  //   }
-  // }, [isReady, spinCallback]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-200 to-pink-200 p-6 gap-6">

@@ -26,13 +26,11 @@ function getLocalNetworkIP() {
 
 const origin = getLocalNetworkIP();
 
-const isHttps = fs.existsSync("certs/cert.pem") && fs.existsSync("certs/key.pem");
-
 const previewStartupMessage = `
 🎉 Your Pulse extension preview \x1b[1m${pulseConfig.displayName}\x1b[0m is LIVE! 
 
-⚡️ Local: ${isHttps ? "https" : "http"}://localhost:3030
-⚡️ Network: ${isHttps ? "https" : "http"}://${origin}:3030
+⚡️ Local: http://localhost:3030
+⚡️ Network: http://${origin}:3030
 
 ✨ Try it out in your browser and let the magic happen! 🚀
 `;
@@ -40,8 +38,8 @@ const previewStartupMessage = `
 const devStartupMessage = `
 🎉 Your Pulse extension \x1b[1m${pulseConfig.displayName}\x1b[0m is LIVE! 
 
-⚡️ Local: ${isHttps ? "https" : "http"}://localhost:3030/${pulseConfig.id}/${pulseConfig.version}/
-⚡️ Network: ${isHttps ? "https" : "http"}://${origin}:3030/${pulseConfig.id}/${pulseConfig.version}/
+⚡️ Local: http://localhost:3030/${pulseConfig.id}/${pulseConfig.version}/
+⚡️ Network: http://${origin}:3030/${pulseConfig.id}/${pulseConfig.version}/
 
 ✨ Try it out in the Pulse Editor and let the magic happen! 🚀
 `;
@@ -258,6 +256,12 @@ const mfClientConfig: WebpackConfig & DevServerConfig = {
               console.log(`[client] ❌ Failed to build client.`);
             } else {
               console.log(`[client] ✅ Successfully built client.`);
+
+              // Write pulse config to dist
+              fs.writeFileSync(
+                path.resolve(__dirname, "dist/client/pulse.config.json"),
+                JSON.stringify(pulseConfig, null, 2)
+              );
             }
           });
         }
@@ -321,7 +325,7 @@ function makeNodeFederationPlugin() {
   console.log(`Discovered server functions:
 ${Object.entries(funcs)
   .map(([name, file]) => {
-    return `  - ${name} (from ${file})`;
+    return `  - ${name.slice(2)} (from ${file})`;
   })
   .join("\n")}
 `);

@@ -21,7 +21,10 @@ const config: ExtensionConfig = {
       description: "Spin the wheel",
       parameters: {},
     }
-  ]
+  ],
+  recommendedHeight: 640,
+  recommendedWidth: 480,
+  thumbnail: "assets/thumbnail.png",
 };
 
 export default config;
