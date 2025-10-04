@@ -1,5 +1,6 @@
-import { useCommand } from "@pulse-editor/react-api";
+import { useRegisterAction } from "@pulse-editor/react-api";
 import React, { useCallback, useMemo, useState } from "react";
+import { preRegisteredActions } from "./actions";
 
 const COLORS = [
   "#fde047", // yellow-300
@@ -95,14 +96,7 @@ const SpinWheel: React.FC = () => {
     [count, spinning]
   );
 
-  useCommand(
-    {
-      name: "spin",
-      description: "Spin the wheel",
-      parameters: {},
-    },
-    spinCallback
-  );
+  useRegisterAction(preRegisteredActions["spin-wheel"], spinCallback);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-200 to-pink-200 p-6 gap-6">
