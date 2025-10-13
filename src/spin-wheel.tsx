@@ -1,5 +1,9 @@
-import { useRegisterAction } from "@pulse-editor/react-api";
-import React, { useCallback, useMemo, useState } from "react";
+import {
+  useRegisterAction,
+  useSnapshotState,
+  useTheme,
+} from "@pulse-editor/react-api";
+import React, { useMemo, useState } from "react";
 import { preRegisteredActions } from "./actions";
 
 const COLORS = [
@@ -24,9 +28,22 @@ function getPrizeIndexFromRotation(rotation: number, n: number): number {
 }
 
 const SpinWheel: React.FC = () => {
-  const [optionsInput, setOptionsInput] = useState<string>(
-    "🎉 Free Coffee, 🍕 Pizza, 🎁 Gift Card, 🍫 Chocolate, 🛍️ Discount, ❌ Try Again"
+  const [optionsInput, setOptionsInput] = useSnapshotState<string>(
+    "options-input",
+    "🎉 Free Coffee, 🍕 Pizza, 🎁 Gift Card, 🍫 Chocolate, 🛍️ Discount, ❌ Try Again",
+    (restoredValue) => {
+      console.log("Options input changed:", restoredValue);
+      const items = restoredValue
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (items.length > 0) {
+        setOptions(() => items);
+        setSelectedPrize(() => null);
+      }
+    }
   );
+
   const [options, setOptions] = useState<string[]>(
     optionsInput.split(",").map((s) => s.trim())
   );
@@ -34,6 +51,24 @@ const SpinWheel: React.FC = () => {
   const [rotation, setRotation] = useState<number>(90);
   const [spinning, setSpinning] = useState<boolean>(false);
   const [selectedPrize, setSelectedPrize] = useState<string | null>(null);
+
+  const [count, setCount] = useState(0);
+
+  useRegisterAction(
+    preRegisteredActions["spin-wheel"],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+    async (args: any) => {
+      if (!spinning) {
+        console.log("Spinning the wheel!", count);
+        setCount(count + 1);
+        // Wait before spinning to allow UI to update
+        const result = await spin();
+        return JSON.stringify({ result });
+      }
+    },
+    [count, spinning, options]
+  );
+  const { theme } = useTheme();
 
   const sliceAngle = 360 / options.length;
 
@@ -49,7 +84,7 @@ const SpinWheel: React.FC = () => {
     return `conic-gradient(from -90deg, ${stops})`;
   }, [options.length, sliceAngle]);
 
-  function spin() {
+  async function spin() {
     if (spinning || options.length === 0) return;
 
     setSpinning(true);
@@ -62,11 +97,12 @@ const SpinWheel: React.FC = () => {
     const finalRotation = rotation + delta;
     setRotation(finalRotation);
 
-    setTimeout(() => {
-      const index = getPrizeIndexFromRotation(finalRotation, options.length);
-      setSelectedPrize(options[index]);
-      setSpinning(false);
-    }, 5000);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const index = getPrizeIndexFromRotation(finalRotation, options.length);
+    setSelectedPrize(options[index]);
+    setSpinning(false);
+
+    return options[index];
   }
 
   const handleUpdateOptions = () => {
@@ -75,45 +111,35 @@ const SpinWheel: React.FC = () => {
       .map((s) => s.trim())
       .filter(Boolean);
     if (items.length > 0) {
-      setOptions(items);
-      setSelectedPrize(null);
+      setOptions(() => items);
+      setSelectedPrize(() => null);
     }
   };
 
-  const [count, setCount] = useState(0);
-
-  const spinCallback = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-    async (args: any) => {
-      if (!spinning) {
-        console.log("Spinning the wheel!", count);
-        setCount(count + 1);
-        // Wait before spinning to allow UI to update
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        spin();
-      }
-    },
-    [count, spinning]
-  );
-
-  useRegisterAction(preRegisteredActions["spin-wheel"], spinCallback);
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-200 to-pink-200 p-6 gap-6">
+    <div
+      className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br data-[theme=light]:from-indigo-200 data-[theme=light]:to-pink-200 data-[theme=dark]:from-gray-800 data-[theme=dark]:to-gray-900 p-6 gap-6"
+      data-theme={theme}
+    >
       {/* Input */}
       <div className="w-full max-w-md flex flex-col items-center">
-        <label className="block mb-2 text-sm font-semibold text-gray-700">
+        <label
+          className="block mb-2 text-sm font-semibold text-gray-700 data-[theme=dark]:text-gray-300"
+          data-theme={theme}
+        >
           Enter options (comma-separated):
         </label>
         <textarea
           value={optionsInput}
           onChange={(e) => setOptionsInput(e.target.value)}
           rows={2}
-          className="w-full p-2 border rounded-lg shadow-sm focus:ring focus:ring-indigo-300"
+          className="w-full p-2 border rounded-lg shadow-sm focus:ring focus:ring-indigo-300 data-[theme=dark]:bg-gray-700 data-[theme=dark]:border-gray-600 data-[theme=dark]:text-gray-200"
+          data-theme={theme}
         />
         <button
           onClick={handleUpdateOptions}
-          className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700"
+          className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 data-[theme=dark]:bg-green-700 data-[theme=dark]:hover:bg-green-800"
+          data-theme={theme}
         >
           Update Wheel
         </button>
@@ -162,7 +188,10 @@ const SpinWheel: React.FC = () => {
       </button>
 
       {selectedPrize && (
-        <p className="mt-2 text-lg font-bold text-gray-800">
+        <p
+          className="mt-2 text-lg font-bold text-gray-800 data-[theme=dark]:text-gray-200"
+          data-theme={theme}
+        >
           You won: {selectedPrize} 🎊
         </p>
       )}

@@ -6,7 +6,7 @@ export const preRegisteredActions: Record<string, Action> = {
     description: "Spin a wheel with different options and get a random result.",
     parameters: {},
     returns: {
-      response: {
+      result: {
         type: "string",
         description: "The result of the spin.",
       },
