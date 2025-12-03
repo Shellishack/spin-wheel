@@ -63,7 +63,7 @@ const SpinWheel: React.FC = () => {
         setCount(count + 1);
         // Wait before spinning to allow UI to update
         const result = await spin();
-        return JSON.stringify({ result });
+        return { result };
       }
     },
     [count, spinning, options]
