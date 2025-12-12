@@ -1,3 +1,6 @@
+> [!WARNING]
+> This repo is deprecated. This project is moved to monorepo: https://github.com/ClayPulse/official-pulse-apps
+
 ## Spin Wheel in Pulse Editor
 
 A fun spinning wheel in Pulse Editor.
